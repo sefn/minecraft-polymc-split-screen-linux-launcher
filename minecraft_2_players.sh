@@ -22,12 +22,12 @@ RENAMED_TITLE_1="PolyMC Game - Instance 1 Split"
 RENAMED_TITLE_2="PolyMC Game - Instance 2 Split"
 
 # Timing Configuration (Adjust if needed)
-LAUNCH_AND_TITLE_STABILIZE_WAIT=5 # Time for window to appear and title to stabilize
-POST_RENAME_WAIT=0.5              # Shorter wait after renaming
-WINDOW_FIND_ATTEMPTS=20           # Max attempts to find a window by title
-WINDOW_FIND_DELAY=1               # Delay between find attempts
-WINDOW_MANIP_DELAY_SHORT=0.3      # Short delay for wmctrl actions in normal path
-WINDOW_MANIP_DELAY_NORMAL=0.6     # Normal delay for wmctrl actions in retry path
+LAUNCH_AND_TITLE_STABILIZE_WAIT=10 # Time for window to appear and title to stabilize
+POST_RENAME_WAIT=0.5               # Shorter wait after renaming
+WINDOW_FIND_ATTEMPTS=20            # Max attempts to find a window by title
+WINDOW_FIND_DELAY=1                # Delay between find attempts
+WINDOW_MANIP_DELAY_SHORT=0.3       # Short delay for wmctrl actions in normal path
+WINDOW_MANIP_DELAY_NORMAL=0.6      # Normal delay for wmctrl actions in retry path
 
 # Monitor Configuration (find the Output name through kscreen-doctor -o)
 KNOWN_PRIMARY_MONITOR_NAME="HDMI-A-1"
