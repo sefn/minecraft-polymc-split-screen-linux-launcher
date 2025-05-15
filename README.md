@@ -1,4 +1,4 @@
-# minecraft-polymc-split-screen-linux-setup
+# minecraft-polymc-split-screen-linux-launcher
 Play Minecraft split-screen (locally) using PolyMC in Linux (on a specific monitor, and disable HDR)
 
 ## What is this?
