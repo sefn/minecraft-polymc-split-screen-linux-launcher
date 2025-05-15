@@ -96,9 +96,61 @@ get_window_id_by_stable_title() {
 # --- Main Logic ---
 disable_hdr
 
-PID1=""; PID2=""; WID1=""; WID2=""
-cleanup_and_exit() { echo "ERROR: $1" >&2; if [ -n "$PID1" ] && ps -p $PID1 >/dev/null; then kill $PID1 2>/dev/null; fi; if [ -n "$PID2" ] && ps -p $PID2 >/dev/null; then kill $PID2 2>/dev/null; fi; exit 1; }
+PID1=""
+PID2=""
+WID1=""
+WID2=""
 
+echo "--- Script started at $(date) ---"
+
+# --- Launch BOTH instances in quick succession first ---
+echo "INFO: Launching PolyMC instance 1 (User1) in background..." >&2
+eval "$FLATPAK_CMD run $POLYMC_ARGS_1 &"
+PID1=$!
+echo "INFO: PolyMC instance 1 (flatpak PID $PID1) launched." >&2
+
+echo "INFO: Launching PolyMC instance 2 (User2) in background..." >&2
+eval "$FLATPAK_CMD run $POLYMC_ARGS_2 &"
+PID2=$!
+echo "INFO: PolyMC instance 2 (flatpak PID $PID2) launched." >&2
+
+# --- Wait for BOTH windows to appear and titles to stabilize ---
+echo "INFO: Waiting ${LAUNCH_AND_TITLE_STABILIZE_WAIT}s for BOTH windows to appear and titles to stabilize..." >&2
+sleep "$LAUNCH_AND_TITLE_STABILIZE_WAIT"
+
+# --- Now find WID1 ---
+echo "INFO: Attempting to find WID for Instance 1 using stable title fragments: '$STABLE_TITLE_FRAGMENT_1', '$STABLE_TITLE_FRAGMENT_2'..." >&2
+WID1_OUTPUT=$(get_window_id_by_stable_title "Instance1_Search" "" "$STABLE_TITLE_FRAGMENT_1" "$STABLE_TITLE_FRAGMENT_2")
+WID1_RET=$? 
+WID1="$WID1_OUTPUT"
+
+if [ $WID1_RET -ne 0 ] || [ -z "$WID1" ]; then
+    cleanup_and_exit "Could not find window for Instance 1 with stable title (ret: $WID1_RET, WID: '$WID1')."
+fi
+echo "INFO: Found WID1: $WID1. Renaming its title to '$RENAMED_TITLE_1'." >&2
+wmctrl -i -r "$WID1" -N "$RENAMED_TITLE_1"
+if [ $? -ne 0 ]; then echo "WARNING: Failed to rename WID1. This might cause issues finding WID2." >&2; fi
+sleep "$POST_RENAME_WAIT" 
+
+# --- Then find WID2 (excluding WID1) ---
+echo "INFO: Attempting to find WID for Instance 2 using stable title fragments: '$STABLE_TITLE_FRAGMENT_1', '$STABLE_TITLE_FRAGMENT_2', excluding WID1: $WID1 ..." >&2
+WID2_OUTPUT=$(get_window_id_by_stable_title "Instance2_Search" "$WID1" "$STABLE_TITLE_FRAGMENT_1" "$STABLE_TITLE_FRAGMENT_2")
+WID2_RET=$?
+WID2="$WID2_OUTPUT"
+
+if [ $WID2_RET -ne 0 ] || [ -z "$WID2" ]; then
+    cleanup_and_exit "Could not find window for Instance 2 with stable title (ret: $WID2_RET, WID: '$WID2')."
+fi
+if [ "$WID1" == "$WID2" ]; then
+    cleanup_and_exit "WID1 and WID2 are the same ($WID1), which is unexpected after renaming WID1."
+fi
+
+echo "INFO: Found WID2: $WID2. Renaming its title to '$RENAMED_TITLE_2'." >&2
+wmctrl -i -r "$WID2" -N "$RENAMED_TITLE_2"
+if [ $? -ne 0 ]; then echo "WARNING: Failed to rename WID2." >&2; fi
+sleep "$POST_RENAME_WAIT"
+
+echo "INFO: Successfully identified and renamed WID1: $WID1 ('$RENAMED_TITLE_1') and WID2: $WID2 ('$RENAMED_TITLE_2')" >&2
 
 # --- Screen Dimension Parsing ---
 PRIMARY_WIDTH=""; PRIMARY_HEIGHT=""; PRIMARY_OFFSET_X=""; PRIMARY_OFFSET_Y=""
